@@ -4,6 +4,7 @@
 
 - [最新：V2单张H100准确度和RTF对比](07_single_h100_v2_benchmark.md)
 - [V2具体设计与高RTF原因](08_hybrid_v2_design_and_rtf.md)
+- [Qwen前预路由与问题段粗定位调研](09_pre_qwen_routing_research.md)
 - [参考标准与评判协议](01_reference_and_protocol.md)
 - [AMI-100当前结果与修复统计](02_results.md)
 - [最终V2混合路由](03_hybrid_routing.md)
