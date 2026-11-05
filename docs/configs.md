@@ -1,0 +1,1 @@
+ami-100 addr: /mnt/data/L202500293/obed/mfa/datasets/ami-100/
