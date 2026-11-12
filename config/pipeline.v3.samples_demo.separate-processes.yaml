@@ -1,0 +1,5 @@
+# Same outputs and inference settings; sequential enhancement parts need no dispatcher.
+extends: pipeline.v3.samples_demo.yaml
+settings:
+  enhance:
+    parallel_segments: false

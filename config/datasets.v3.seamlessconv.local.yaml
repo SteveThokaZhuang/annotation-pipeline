@@ -1,0 +1,11 @@
+datasets:
+  seamless_fd:
+    # Override with SEAMLESSCONV_ROOT when the dataset is stored elsewhere.
+    path: ${SEAMLESSCONV_ROOT}
+    language: auto
+    enhance: true
+    scan_workers: 16
+    extensions:
+    - .wav
+    - .flac
+    - .ogg

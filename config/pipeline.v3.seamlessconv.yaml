@@ -1,0 +1,3 @@
+# Dedicated output namespace for the SeamlessConv run.
+extends: pipeline.v3.yaml
+output_root: /mnt/data/L202500721/Pipeline_v1_output_storage/v3-seamless-fd

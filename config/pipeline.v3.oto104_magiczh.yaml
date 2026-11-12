@@ -1,0 +1,3 @@
+# Inherit the demo's inference settings, with a separate full-dataset output root.
+extends: pipeline.v3.samples_demo.yaml
+output_root: outputs/oto104_magiczh_full

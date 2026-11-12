@@ -1,0 +1,41 @@
+{
+  "repository": "MontrealCorpusTools/english_us_arpa",
+  "revision": "9c8d5d8e1dd5d9cf188a5571203de0e09ca6bede",
+  "files": [
+    {
+      "file": "acoustic/final.alimdl",
+      "url": "https://huggingface.co/MontrealCorpusTools/english_us_arpa/resolve/9c8d5d8e1dd5d9cf188a5571203de0e09ca6bede/acoustic/final.alimdl",
+      "sha256": "999bdaad1d23066b01fce6aa5d2460bcd17cb0378f6ffce9f96f4e401892534c"
+    },
+    {
+      "file": "acoustic/final.mdl",
+      "url": "https://huggingface.co/MontrealCorpusTools/english_us_arpa/resolve/9c8d5d8e1dd5d9cf188a5571203de0e09ca6bede/acoustic/final.mdl",
+      "sha256": "8640c79d1141d47a8a20428447dff12ff07e2cab4ad9bb60ffce9ea3d8e213e3"
+    },
+    {
+      "file": "acoustic/lda.mat",
+      "url": "https://huggingface.co/MontrealCorpusTools/english_us_arpa/resolve/9c8d5d8e1dd5d9cf188a5571203de0e09ca6bede/acoustic/lda.mat",
+      "sha256": "89382b2ad1f9f5f227abf521703bcfe932c63d2a36e52d81b0401e92c4c7b52f"
+    },
+    {
+      "file": "acoustic/meta.json",
+      "url": "https://huggingface.co/MontrealCorpusTools/english_us_arpa/resolve/9c8d5d8e1dd5d9cf188a5571203de0e09ca6bede/acoustic/meta.json",
+      "sha256": "292800e50461ea15ca917f76b7828f6ff4d0ba4a8f55b22b185e1f4780eb5ec7"
+    },
+    {
+      "file": "acoustic/phones.txt",
+      "url": "https://huggingface.co/MontrealCorpusTools/english_us_arpa/resolve/9c8d5d8e1dd5d9cf188a5571203de0e09ca6bede/acoustic/phones.txt",
+      "sha256": "fe7b6d92ed67f04dab3c52fcf47ed078e5586dd6b94eeabcb0a8d88dfea062d1"
+    },
+    {
+      "file": "acoustic/tree",
+      "url": "https://huggingface.co/MontrealCorpusTools/english_us_arpa/resolve/9c8d5d8e1dd5d9cf188a5571203de0e09ca6bede/acoustic/tree",
+      "sha256": "cac03261b41e2d2d4eb142e3ce69bbce3de149900de42d9f0449f768a8db4eb1"
+    },
+    {
+      "file": "dictionary/english_us_arpa.dict",
+      "url": "https://huggingface.co/MontrealCorpusTools/english_us_arpa/resolve/9c8d5d8e1dd5d9cf188a5571203de0e09ca6bede/dictionary/english_us_arpa.dict",
+      "sha256": "5d34ed615e35840abb04cedf457ff63fdc43abc1a79232bb5513d0514e071d1f"
+    }
+  ]
+}

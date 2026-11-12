@@ -1,0 +1,14 @@
+# Full datasets, distinct from the Samples_demo catalog.
+datasets:
+  oto_141:
+    path: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/data_processing/oto_141
+    language: English
+    enhance: true
+    scan_workers: 16
+    extensions: [.wav, .flac, .ogg]
+  magicdata_chinese:
+    path: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/data_processing/magicdata_chinese
+    language: Chinese
+    enhance: true
+    scan_workers: 16
+    extensions: [.wav, .flac, .ogg]

@@ -1,0 +1,17 @@
+# Samples_demo test profile; inherit the SeamlessConv resource settings.
+extends: resources.v3.seamlessconv.yaml
+optimization:
+  scratch_root: /tmp/shared-storage/ap3/samples_demo/scratch
+  ipc_root: /tmp/shared-storage/ap3/samples_demo/ipc
+  working_cache:
+    # Synchronize retained working-cache results to pipeline.output_root.
+    sync_enabled: true
+    root: /tmp/shared-storage/ap3/samples_demo/working
+  cache:
+    enabled: true
+    root: /tmp/shared-storage/ap3/samples_demo/source
+    max_gib: 1024
+  discovery:
+    root: /tmp/shared-storage/ap3/samples_demo/catalog
+  feature_transport:
+    root: /tmp/shared-storage/ap3/samples_demo/features

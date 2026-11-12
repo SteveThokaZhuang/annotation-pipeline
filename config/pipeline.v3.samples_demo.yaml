@@ -1,0 +1,4 @@
+# Samples_demo test profile; inherit the SeamlessConv pipeline settings.
+extends: pipeline.v3.seamlessconv.yaml
+# Final synchronized output location for the Samples_demo test runs.
+output_root: /hbt_share02/202610/ob/ob_ppl_env_data/audio_pipeline_optimized/Pipeline_github_v3_Merge/outputs/samples_demo_all2

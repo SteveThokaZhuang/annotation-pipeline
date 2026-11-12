@@ -1,0 +1,156 @@
+# V3 inference semantics and shared checkpoint references. No weights are copied.
+assignments:
+  asr1: qwen3_asr
+  asr2: funasr
+  asr3: fireredasr
+dataset_root: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/data_processing
+environments:
+  firered-vad: /hbt_share02/202610/ob/ob_ppl_env_data/envs/firered-vad/bin/python
+  dnsmos: /hbt_share02/202610/ob/ob_ppl_env_data/envs/dnsmos/bin/python
+  denoising-comparison: /hbt_share02/202610/ob/ob_ppl_env_data/envs/denoising-comparison/bin/python
+  qwen3-asr: /hbt_share02/202610/ob/ob_ppl_env_data/envs/qwen3-asr/bin/python
+  funasr: /hbt_share02/202610/ob/ob_ppl_env_data/envs/funasr/bin/python
+  firered-asr2: /hbt_share02/202610/ob/ob_ppl_env_data/envs/firered-asr2/bin/python
+models:
+  fireredasr:
+    checkpoint: /hbt_share02/202610/ob/ob_ppl_env_data/audio_pipeline_optimized/models/firered-asr2/checkpoints/FireRedASR2-LLM
+    environment: firered-asr2
+    inference:
+      beam_size: 1
+      engine: vllm
+      vllm:
+        gpu_memory_utilization: 0.6
+        tensor_parallel_size: 1
+        enable_prefix_caching: false
+        enforce_eager: true
+        max_model_len: 4096
+      decoder_export_root: /tmp/shared-storage/ap3/models
+    min_free_vram_gib: 24
+    module: models/firered-asr2/final_script/adapter.py
+    requires_gpu: true
+    python: /hbt_share02/202610/ob/ob_ppl_env_data/audio_pipeline_optimized/Pipeline_github/.venv-vllm-validation/bin/python
+  funasr:
+    checkpoint: /hbt_share02/202610/ob/ob_ppl_env_data/audio_pipeline_optimized/models/funasr/checkpoints/Fun-ASR-Nano-2512
+    environment: funasr
+    inference:
+      encoder_batch_size: 32
+      encoder_max_padded_frames: 16000
+      engine: vllm
+      vllm:
+        gpu_memory_utilization: 0.6
+        tensor_parallel_size: 1
+        enable_prefix_caching: false
+        enforce_eager: true
+        max_model_len: 4096
+      decoder_export_root: /tmp/shared-storage/ap3/models
+    min_free_vram_gib: 8
+    module: models/funasr/final_script/adapter.py
+    requires_gpu: true
+    python: /hbt_share02/202610/ob/ob_ppl_env_data/audio_pipeline_optimized/Pipeline_github/.venv-vllm-validation/bin/python
+  qwen3_asr:
+    checkpoint: /hbt_share02/202610/ob/ob_ppl_env_data/audio_pipeline_optimized/models/qwen3-asr/checkpoints/Qwen3-ASR-1.7B
+    environment: qwen3-asr
+    inference:
+      engine: vllm
+      vllm:
+        gpu_memory_utilization: 0.8
+        tensor_parallel_size: 1
+        enable_prefix_caching: false
+        mm_processor_cache_gb: 0
+        enforce_eager: true
+        max_model_len: 4096
+      decoder_export_root: /tmp/shared-storage/ap3/models
+    min_free_vram_gib: 8
+    module: models/qwen3-asr/final_script/adapter.py
+    requires_gpu: true
+    python: /hbt_share02/202610/ob/ob_ppl_env_data/audio_pipeline_optimized/Pipeline_github/.venv-vllm-validation/bin/python
+output_root: /tmp/shared-storage/ap3/results
+settings:
+  align:
+    adaptive: true
+    language: auto
+    timestamp_tolerance: 0.08
+  asr:
+    adaptive: true
+    language: auto
+    max_new_tokens: 512
+  disagreement:
+    language: auto
+    metric: auto
+    reference: asr1
+    threshold: 0.1
+  dnsmos:
+    hop_seconds: 1
+    window_batch_size: 64
+    window_seconds: 9.01
+  enhance:
+    channel_batch_size: 1
+    estimated_gpu_gib_per_second: 0.02
+    estimated_ram_gib_per_second: 0.04
+    gru_chunk_frames: 30000
+    max_estimated_ram_gib: 192
+    max_gpu_seconds: 1800
+    max_seconds: 3700
+    async_audio_write: true
+    prepare_spectral_features: true
+    host_headroom_fraction: 0.75
+    gpu_headroom_fraction: 0.75
+    assembly_block_seconds: 10
+    method_version: auto_v3
+    parallel_segments: true
+    target_seconds: 120
+    max_segment_seconds: 180
+    min_segment_seconds: 60
+    boundary_search_seconds: 15
+    min_silence_seconds: 0.3
+    context_seconds: 2
+    crossfade_seconds: 0.25
+    auto_policy:
+      whole_max_seconds: 1800
+      whole_max_ram_gib: 32
+      whole_max_gpu_gib: 16
+  rover:
+    alpha: 1.0
+    null_confidence: 0.5
+    unit: mixed
+  vad:
+    chunk_seconds: 30
+    min_chunk_seconds: 10
+    min_silence_seconds: 0.1
+    fallback_search_seconds: 2
+    energy_window_ms: 100
+    merge_gap: 0.15
+    min_speech_ms: 40
+    padding: 0.25
+    speech_threshold: 0.3
+    gpu_batch_size: 8
+stage_models:
+  vad:
+    checkpoint: /hbt_share02/202610/ob/ob_ppl_env_data/audio_pipeline_optimized/models/VAD/FireRedVAD/checkpoints/VAD
+  dnsmos:
+    checkpoint: /hbt_share02/202610/ob/ob_ppl_env_data/audio_pipeline_optimized/models/dnsmos/checkpoint
+  enhance:
+    checkpoint: /hbt_share02/202610/ob/ob_ppl_env_data/audio_pipeline_optimized/models/deepfilternet3/checkpoint/DeepFilterNet3
+    module: models/deepfilternet3/final_script/adapter_auto.py
+  align:
+    module: models/qwen3-fa-mfa/final_script/adapter.py
+    checkpoint: /hbt_share02/202610/ob/ob_ppl_env_data/audio_pipeline_optimized/models/qwen3-asr/checkpoints/Qwen3-ForcedAligner-0.6B
+    backend: public
+    mfa_python: models/mfa/bin/python
+    dictionary: models/mfa-english/dictionary/english_us_arpa.dict
+    acoustic_model: models/mfa-english/english_us_arpa.zip
+    mfa_jobs: 8
+    mfa_timeout: 1800
+    padding: 0.35
+    # Explicit dataset routing.  These corpora contain Mandarin transcripts;
+    # do not let them inherit the English MFA defaults above.
+    mfa_by_dataset:
+      magicdata_chinese:
+        language: Chinese
+        dictionary: models/mfa-mandarin/dictionary/mandarin_china_mfa.dict
+        acoustic_model: models/mfa-mandarin/mandarin_mfa.zip
+      basis-conversations-1500-zh:
+        language: Chinese
+        dictionary: models/mfa-mandarin/dictionary/mandarin_china_mfa.dict
+        acoustic_model: models/mfa-mandarin/mandarin_mfa.zip
+datasets: {}

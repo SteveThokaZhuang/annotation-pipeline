@@ -1,0 +1,238 @@
+# Scheduling policy; no dataset-specific duration assumptions.
+version: 3
+configuration:
+  conflicts: error
+cpu:
+  cores: auto
+  workers: 56
+  threads_per_worker: 2
+  io_workers: 16
+gpu:
+  devices:
+  - 0
+  - 1
+  - 2
+  - 3
+  allow_cpu_fallback: false
+scheduler:
+  max_concurrent_stages: 1
+  max_concurrent_gpu_jobs_per_device: 1
+  shutdown_timeout_seconds: 90
+  gpu_lock_root: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/data_processing/_pipeline/control/gpu_locks
+optimization:
+  resume:
+    # Trust durable completion records. Use full after external source/artifact edits.
+    validation: trusted
+  finalization:
+    reuse_unchanged_ingest_manifest: true
+    incremental_recording_ledger: true
+  failure_policy:
+    model_initialization: stop
+  scratch_root: /tmp/shared-storage/ap3/s
+  ipc_root: /tmp/shared-storage/ap3/i
+  working_cache:
+    # false: write generated outputs directly to pipeline.output_root.
+    enabled: false
+    # With enabled: true, false keeps outputs in the working cache only.
+    sync_enabled: true
+  cache:
+    enabled: true
+    root: /tmp/shared-storage/ap3/source
+    max_gib: 1024
+  persistent_workers:
+    enabled: true
+    idle_seconds: 60
+    startup_timeout_seconds: 180
+    poll_seconds: 0.5
+    shutdown_timeout_seconds: 60
+  task_dispatch:
+    enabled: true
+    target_bundles_per_worker: 2
+    order: longest_first
+    max_items: 512
+    max_audio_seconds: 1800
+    preserve_recordings: false
+  transfers:
+    pinned: true
+    non_blocking: true
+    max_pinned_gib_per_worker: 0.125
+  memory:
+    cache_reclaim_fraction: 0.5
+    wait_timeout_seconds: 300
+    wait_poll_seconds: 2
+    max_host_gib: auto
+    host_fraction: 0.7
+    queue_budget_gib: 128
+    min_free_gib: 16
+  discovery:
+    enabled: true
+    root: /tmp/shared-storage/ap3/catalog
+    max_refresh_attempts: 2
+  feature_transport:
+    mode: memmap
+    root: /tmp/shared-storage/ap3/features
+  monitoring:
+    sample_seconds: 1
+    report_seconds: 10
+  async_write: true
+  resume_scan_workers: 16
+  decoded_ram_gib_per_process: 1
+  manifest_cache_gib: 4
+  export_workers: 4
+  record_running_state: false
+  adaptive:
+    memory_feedback: auto
+    max_padded_seconds: 6400
+    min_free_gib: 4
+    target_memory_fraction: 0.8
+    calibration: null
+    models:
+      qwen3_asr:
+        max_padded_seconds: 6400
+      funasr:
+        max_padded_seconds: 3200
+      fireredasr:
+        max_padded_seconds: 800
+      align:
+        max_padded_seconds: 400
+  stage_pipelines:
+    qwen3_asr:
+      enabled: true
+      lookahead_batches: 2
+      max_gib: 4
+    fireredasr:
+      enabled: true
+      lookahead_batches: 2
+      max_gib: 4
+    align:
+      # The FA+MFA adapter owns its complete Qwen/MFA call. The previous
+      # native alignment stage wrapper would bypass the adapter's MFA repair.
+      enabled: false
+      lookahead_batches: 2
+      max_gib: 2
+    vad:
+      enabled: true
+      lookahead_batches: 1
+      max_gib: 4
+    dnsmos:
+      enabled: true
+      max_gib: 0.25
+      cross_recording_batching: true
+  funasr_pipeline:
+    enabled: true
+    lookahead_batches: 2
+    max_gib: 4
+stages:
+  ingest:
+    workers: 4
+    gpu_devices: []
+    result_batch_size: 256
+  dnsmos:
+    workers: 4
+    gpu_devices: all
+    result_batch_size: 8
+    prepare_workers: 2
+    prefetch_batches: 2
+    prepare_max_gib: 2
+    checkpoint:
+      max_seconds: 10
+      max_mib: 16
+    inference_batch_size: 16
+    adaptive: true
+    batch_policy:
+      max_padded_seconds: 600
+    prepare_lookahead: 2
+    prefetch_recordings: true
+    task_dispatch:
+      max_items: 32
+      max_audio_seconds: 4800
+      prefetch_bundles: 1
+  vad:
+    workers: 4
+    gpu_devices: all
+    result_batch_size: 64
+    prepare_workers: 4
+    prefetch_batches: 2
+    prepare_max_gib: 4
+    checkpoint:
+      max_seconds: 10
+      max_mib: 16
+    prepare_lookahead: 8
+    prepare_order: ready
+    ready_wait_seconds: 0.01
+    inference_batch_size: 4
+    task_dispatch:
+      max_items: 16
+      max_audio_seconds: 36000
+  enhance:
+    workers: 4
+    gpu_devices: all
+    result_batch_size: 1
+    prepare_workers: 2
+    prefetch_batches: 2
+    prepare_max_gib: 1
+    checkpoint:
+      max_seconds: 10
+      max_mib: 16
+    inference_batch_size: 1
+    prepare_lookahead: 2
+    prefetch_recordings: true
+    task_dispatch:
+      max_items: 16
+      max_audio_seconds: 1200
+  asr1:
+    workers: 4
+    gpu_devices: all
+    result_batch_size: 64
+    prepare_workers: 2
+    prefetch_batches: 2
+    prepare_max_gib: 4
+    checkpoint:
+      max_seconds: 10
+      max_mib: 16
+    inference_batch_size: 256
+    adaptive: true
+  asr2:
+    workers: 4
+    gpu_devices: all
+    result_batch_size: 64
+    prepare_workers: 2
+    prefetch_batches: 2
+    prepare_max_gib: 4
+    checkpoint:
+      max_seconds: 10
+      max_mib: 16
+    inference_batch_size: 128
+    adaptive: true
+  disagreement:
+    workers: 2
+    gpu_devices: []
+    result_batch_size: 256
+  asr3:
+    workers: 4
+    gpu_devices: all
+    result_batch_size: 64
+    prepare_workers: 2
+    prefetch_batches: 2
+    prepare_max_gib: 4
+    checkpoint:
+      max_seconds: 10
+      max_mib: 16
+    inference_batch_size: 32
+    adaptive: true
+  rover:
+    workers: 2
+    gpu_devices: []
+    result_batch_size: 256
+  align:
+    workers: 4
+    gpu_devices: all
+    result_batch_size: 64
+    prepare_workers: 2
+    prefetch_batches: 2
+    prepare_max_gib: 4
+    checkpoint:
+      max_seconds: 10
+      max_mib: 16
+    inference_batch_size: 16
+    adaptive: true

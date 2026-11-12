@@ -1,0 +1,21 @@
+# Dedicated runtime/cache paths for SeamlessConv. GPU locks remain shared so
+# this run still coordinates safely with other pipeline runs.
+extends: resources.v3.yaml
+optimization:
+  scratch_root: /tmp/shared-storage/ap3/seamlessconv/scratch
+  ipc_root: /tmp/shared-storage/ap3/seamlessconv/ipc
+  working_cache:
+    enabled: true
+    sync_enabled: false
+    root: /tmp/shared-storage/ap3/seamlessconv/working
+    sync_interval_seconds: 30
+    sync_mib_per_second: 64
+    min_free_gib: 16
+  cache:
+    enabled: true
+    root: /tmp/shared-storage/ap3/seamlessconv/source
+    max_gib: 1024
+  discovery:
+    root: /tmp/shared-storage/ap3/seamlessconv/catalog
+  feature_transport:
+    root: /tmp/shared-storage/ap3/seamlessconv/features

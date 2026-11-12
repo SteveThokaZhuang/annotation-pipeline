@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "candidate_backend": "nyra",
+  "mfa_language": "en",
+  "event_on": 0.6,
+  "event_off": 0.35,
+  "event_min_seconds": 0.15,
+  "event_merge_seconds": 0.2,
+  "event_margin_seconds": 0.3,
+  "overlap_min_seconds": 0.15,
+  "disagreement_threshold": 0.2,
+  "background_mos_threshold": 2.5,
+  "panns_checkpoint": "",
+  "pyannote_model": "",
+  "detector_device": "cpu"
+}

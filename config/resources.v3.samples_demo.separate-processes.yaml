@@ -1,0 +1,12 @@
+# Diagnostic workaround: workers exit after each stage instead of retaining models.
+extends: resources.v3.samples_demo.yaml
+optimization:
+  persistent_workers:
+    enabled: false
+  task_dispatch:
+    enabled: false
+stages:
+  dnsmos:
+    task_dispatch:
+      enabled: false
+      prefetch_bundles: 0

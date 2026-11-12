@@ -1,0 +1,17 @@
+# Selected versions from successful H100 validation; not a complete clean-install lockfile.
+# The Qwen upstream optional extra pins this vLLM version.
+vllm==0.14.0
+transformers==4.57.6
+accelerate
+safetensors
+peft==0.15.2
+omegaconf==2.3.1
+kaldiio==2.18.1
+kaldi-native-fbank==1.22.3
+sentencepiece
+cn2an
+soundfile
+scipy
+PyYAML
+
+# Torch 2.9.1 was tested; select CUDA wheels compatible with your host.

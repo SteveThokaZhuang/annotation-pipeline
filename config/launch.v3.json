@@ -1,0 +1,12 @@
+{
+  "python": "python3",
+  "pipeline": "config/pipeline.v3.yaml",
+  "resources": "config/resources.v3.yaml",
+  "datasets": "config/datasets.v3.oto104_magiczh.local.yaml",
+  "python_paths": [
+    "pipeline",
+    "vendor",
+    "models/funasr/source",
+    "models/deepfilternet3/DeepFilterNet"
+  ]
+}

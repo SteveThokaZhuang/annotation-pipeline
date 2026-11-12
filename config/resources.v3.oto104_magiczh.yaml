@@ -1,0 +1,17 @@
+# Same scheduling/model controls as the demo, using the fixed resident lifecycle.
+extends: resources.v3.samples_demo.yaml
+optimization:
+  scratch_root: /tmp/shared-storage/ap3/oto104_magiczh/scratch
+  ipc_root: /tmp/shared-storage/ap3/oto104_magiczh/ipc
+  working_cache:
+    enabled: true
+    sync_enabled: true
+    root: /tmp/shared-storage/ap3/oto104_magiczh/working
+  cache:
+    enabled: true
+    root: /tmp/shared-storage/ap3/oto104_magiczh/source
+    max_gib: 2048
+  discovery:
+    root: /tmp/shared-storage/ap3/oto104_magiczh/catalog
+  feature_transport:
+    root: /tmp/shared-storage/ap3/oto104_magiczh/features

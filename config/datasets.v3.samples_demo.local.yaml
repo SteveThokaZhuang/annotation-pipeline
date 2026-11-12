@@ -1,0 +1,83 @@
+# Test catalog for the audio samples under Samples_demo.
+# Each entry has an explicit language so ASR1 and ASR2 receive a forced
+# language instead of falling back to automatic language detection.
+datasets:
+  basis-conversations-1500:
+    path: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/Samples_demo/basis-conversations-1500
+    language: English
+    enhance: true
+    scan_workers: 16
+    extensions: [.wav, .flac, .ogg]
+  duplexconv:
+    path: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/Samples_demo/duplexconv
+    language: Chinese
+    enhance: true
+    scan_workers: 16
+    extensions: [.wav, .flac, .ogg]
+  fisher_english:
+    path: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/Samples_demo/fisher_english
+    language: English
+    enhance: true
+    scan_workers: 16
+    extensions: [.wav, .flac, .ogg]
+  magicdata_chinese:
+    path: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/Samples_demo/magicdata_chinese
+    language: Chinese
+    enhance: true
+    scan_workers: 16
+    extensions: [.wav, .flac, .ogg]
+  magicdata_english:
+    path: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/Samples_demo/magicdata_english
+    language: English
+    enhance: true
+    scan_workers: 16
+    extensions: [.wav, .flac, .ogg]
+  open_yap_1k:
+    path: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/Samples_demo/open_yap_1k
+    language: English
+    enhance: true
+    scan_workers: 16
+    extensions: [.wav, .flac, .ogg]
+  oto_141:
+    path: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/Samples_demo/oto_141
+    language: English
+    enhance: true
+    scan_workers: 16
+    extensions: [.wav, .flac, .ogg]
+  oto_280:
+    path: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/Samples_demo/oto_280
+    language: English
+    enhance: true
+    scan_workers: 16
+    extensions: [.wav, .flac, .ogg]
+  oto_task_20:
+    path: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/Samples_demo/oto_task_20
+    language: English
+    enhance: true
+    scan_workers: 16
+    extensions: [.wav, .flac, .ogg]
+  oto_task_v2:
+    path: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/Samples_demo/oto_task_v2
+    language: English
+    enhance: true
+    scan_workers: 16
+    extensions: [.wav, .flac, .ogg]
+  oto_turn_104:
+    path: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/Samples_demo/oto_turn_104
+    language: English
+    enhance: true
+    scan_workers: 16
+    extensions: [.wav, .flac, .ogg]
+  seamless_fd:
+    # This sample is configured as English for the forced-language test.
+    path: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/Samples_demo/seamless_fd
+    language: English
+    enhance: true
+    scan_workers: 16
+    extensions: [.wav, .flac, .ogg]
+  smoothconv-2spks:
+    path: /hbt_share02/202610/ob/ob_ppl_env_data/dataset/Samples_demo/smoothconv-2spks
+    language: Chinese
+    enhance: true
+    scan_workers: 16
+    extensions: [.wav, .flac, .ogg]

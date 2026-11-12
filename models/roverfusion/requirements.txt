@@ -1,0 +1,3 @@
+# Only Hystoc needs NumPy; standard ROVER voting uses Python's standard library.
+# Version verified with the workspace's Python 3.9.19.
+numpy==2.0.2

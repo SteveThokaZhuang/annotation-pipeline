@@ -1,0 +1,174 @@
+from itertools import groupby
+import re
+
+import librosa
+import soundfile as sf
+import torch
+
+from funasr.utils.torchaudio_compat import require_torchaudio, torchaudio_available
+
+
+def load_audio(wav_path, rate: int = None, offset: float = 0, duration: float = None):
+    """Load audio.
+
+        Args:
+            wav_path: TODO.
+            rate: TODO.
+            offset: TODO.
+            duration: TODO.
+        """
+    with sf.SoundFile(wav_path) as f:
+        start_frame = int(offset * f.samplerate)
+        if duration is None:
+            frames_to_read = f.frames - start_frame
+        else:
+            frames_to_read = int(duration * f.samplerate)
+        f.seek(start_frame)
+        audio_data = f.read(frames_to_read, dtype="float32")
+    audio_tensor = torch.from_numpy(audio_data)
+    if rate is not None and f.samplerate != rate:
+        if audio_tensor.ndim == 1:
+            audio_tensor = audio_tensor.unsqueeze(0)
+        else:
+            audio_tensor = audio_tensor.T
+        if torchaudio_available():
+            torchaudio = require_torchaudio("resampling")
+            resampler = torchaudio.transforms.Resample(orig_freq=f.samplerate, new_freq=rate)
+            audio_tensor = resampler(audio_tensor)
+        else:
+            audio_tensor = torch.from_numpy(
+                librosa.resample(audio_tensor.numpy(), orig_sr=f.samplerate, target_sr=rate)
+            )
+        if audio_tensor.shape[0] == 1:
+            audio_tensor = audio_tensor.squeeze(0)
+    return audio_tensor, rate if rate is not None else f.samplerate
+
+
+def forced_align(log_probs: torch.Tensor, targets: torch.Tensor, blank: int = 0):
+    """Forced align.
+
+        Args:
+            log_probs: TODO.
+            targets: TODO.
+            blank: TODO.
+        """
+    torchaudio = require_torchaudio("forced_align")
+    items = []
+    try:
+        # The current version only supports batch_size==1.
+        log_probs, targets = log_probs.unsqueeze(0).cpu(), targets.unsqueeze(0).cpu()
+        assert log_probs.shape[1] >= targets.shape[1]
+        alignments, scores = torchaudio.functional.forced_align(log_probs, targets, blank=blank)
+        alignments, scores = alignments[0], torch.exp(scores[0]).tolist()
+        # use enumerate to keep track of the original indices, then group by token value
+        for token, group in groupby(enumerate(alignments), key=lambda item: item[1]):
+            if token == blank:
+                continue
+            group = list(group)
+            start = group[0][0]
+            end = start + len(group)
+            score = max(scores[start:end])
+            items.append(
+                {
+                    "token": token.item(),
+                    "start_time": start,
+                    "end_time": end,
+                    "score": round(score, 3),
+                }
+            )
+    except Exception:
+        pass
+    return items
+
+
+_SPECIAL_TOKEN_RE = re.compile(r"^<[^>]*>$")
+# tiktoken decodes a partial UTF-8 byte sequence (one id of a multi-id
+# character, e.g. SenseVoice ids [10958, 245] for 郗) as U+FFFD. All three
+# Nano timestamp paths decode each token id independently, so such fragments
+# reach classification as "�". They are spoken content, never punctuation.
+_UNDECODABLE_FRAGMENT_MARK = "�"
+# Supported sentence punctuation: the closed set of terminators and clause
+# separators that ASR emits as structural markup with no acoustic
+# realization — the only tokens the anchoring policy is entitled to collapse.
+# Grounded in the official SenseVoice multilingual.tiktoken vocabulary
+# (FunAudioLLM/Fun-ASR-Nano-2512 @272c57b, sha256
+# 74797963e813193436aabcff7c1c235d37de8097b71c563ec8b63b7a515c718), where
+# every character below is a single-id Po token. Symbol tokens are
+# deliberately excluded: they carry real acoustic extent as spoken semantic
+# content, e.g. "++" (id 24754, Unicode Sm) in 我用C++。你好。 and "$" (id 3,
+# Sc) in 价格是$10。你好。 — anchoring them would delete spoken timing (PR
+# #3703 review). Anything outside this set defaults to spoken, so unknown
+# tokens fail safe rather than lose their span.
+_SENTENCE_PUNCTUATION_CHARS = frozenset("。！？，、；：.,!?;:")
+
+
+def _is_sentence_punctuation(token):
+    """True iff every character of ``token`` is supported sentence punctuation."""
+    return bool(token) and all(char in _SENTENCE_PUNCTUATION_CHARS for char in token)
+
+
+def _classify_timestamp_token(token):
+    """Classify one decoded timestamp token into spoken/punctuation/special.
+
+    Special tokens (``<sil>``-shaped) are their own class: they are neither
+    spoken content nor punctuation, so they neither trigger anchoring nor
+    serve as anchors. Undecodable byte fragments (containing U+FFFD) are
+    spoken: they are slices of a multi-id character with real acoustic
+    extent, and collapsing their spans would delete spoken timing (issue
+    #3703). Punctuation is only the supported sentence-punctuation set
+    (see ``_SENTENCE_PUNCTUATION_CHARS``); every other non-word token —
+    semantic symbols such as ``++`` or ``$`` — is spoken and keeps its span.
+    Non-string tokens (integer ids, if called pre-decode) fall back to
+    spoken to preserve pass-through behavior.
+    """
+    if not isinstance(token, str) or not token:
+        return "spoken"
+    if _SPECIAL_TOKEN_RE.match(token):
+        return "special"
+    if _UNDECODABLE_FRAGMENT_MARK in token:
+        return "spoken"
+    if _is_sentence_punctuation(token):
+        return "punctuation"
+    return "spoken"
+
+
+def anchor_punctuation_timestamps(timestamps):
+    """Anchor punctuation-only tokens at the preceding spoken token's end.
+
+    CTC forced alignment must place every target token — including punctuation
+    tokens with no acoustic realization — on at least one frame. Inside a
+    merged multi-sentence window (see FunASR issue #3702) such a token lands
+    at the next sentence's onset frame, so the current sentence's punctuation
+    timestamp reads as the next sentence start. Punctuation carries no acoustic
+    extent, so a punctuation span that is followed by more speech is pinned
+    (zero-width) at the end of the speech it terminates.
+
+    Leading punctuation (no predecessor) and trailing punctuation (no
+    successor, e.g. single-segment output) are left untouched, as are special
+    tokens such as ``<sil>``. This preserves existing single-segment behavior.
+
+    Args:
+        timestamps: List of ``{"token": str, "start_time": float,
+            "end_time": float}`` dicts in time order. Mutated in place.
+
+    Returns:
+        The same list, for convenient chaining.
+    """
+    last_spoken_end = None
+    total = len(timestamps)
+    for index, ts in enumerate(timestamps):
+        kind = _classify_timestamp_token(ts.get("token", ""))
+        if kind != "punctuation":
+            if kind == "spoken":
+                end = ts.get("end_time")
+                if isinstance(end, (int, float)):
+                    last_spoken_end = end
+            continue
+        following_spoken = any(
+            _classify_timestamp_token(later.get("token", "")) == "spoken"
+            for later in timestamps[index + 1 : total]
+        )
+        if last_spoken_end is not None and following_spoken:
+            ts["start_time"] = last_spoken_end
+            ts["end_time"] = last_spoken_end
+    return timestamps
