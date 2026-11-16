@@ -81,11 +81,23 @@ class Adapter:
         source = Path(row['audio'])
         info = sf.info(source)
         expected = float(row['duration'])
-        if abs(float(info.duration) - expected) <= 0.08:
+        channel = int(row['channel']) if row.get('channel') is not None else 0
+        if info.channels > 1 and not 0 <= channel < info.channels:
+            raise ValueError(f"Invalid FA channel for {row['id']}: {channel}/{info.channels}")
+        start, end = row.get('audio_start_sample'), row.get('audio_end_sample')
+        full_chunk = (start is not None and end is not None and
+                      int(start) == 0 and int(end) == info.frames)
+        # On a full recording the explicit sample bounds are authoritative.
+        # On a pre-cut chunk the original recording offset can exceed its length.
+        looks_precut = (abs(float(info.duration) - expected) <= 0.08 + 1e-9 and
+                        (end is None or int(end) > info.frames))
+        if info.channels == 1 and (full_chunk or looks_precut):
+            if abs(float(info.duration) - expected) > 0.08 + 1e-9:
+                raise ValueError(f"Audio duration mismatch for {row['id']}: full recording")
             return row
 
-        start = row.get('audio_start_sample')
-        end = row.get('audio_end_sample')
+        if looks_precut:
+            start, end = 0, info.frames
         if start is None:
             start = round(float(row['chunk_start']) * info.samplerate)
         if end is None:
@@ -98,8 +110,9 @@ class Adapter:
 
         audio, rate = sf.read(source, start=start, stop=end,
                               dtype='float32', always_2d=True)
+        audio = audio[:, channel if info.channels > 1 else 0]
         actual = len(audio) / rate
-        if abs(actual - expected) > 0.08:
+        if abs(actual - expected) > 0.08 + 1e-9:
             raise ValueError(
                 f"Audio duration mismatch for {row['id']}: "
                 f"slice={actual:.3f}s metadata={expected:.3f}s")
