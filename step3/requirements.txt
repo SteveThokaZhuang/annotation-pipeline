@@ -1,0 +1,5 @@
+numpy>=1.24
+scipy>=1.10
+soundfile>=0.12
+# For audio inference; tested with duplexjev 0.7.0, torch 2.9.1, transformers 4.57.6.
+duplexjev==0.7.0
